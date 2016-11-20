@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <thread>
+#define V_INPUT 8.12
+#define REF_RESISTANCE 982
 using namespace std;
 Ohmetro::Ohmetro(QWidget *parent) :
     QMainWindow(parent),
@@ -26,7 +28,7 @@ Ohmetro::Ohmetro(QWidget *parent) :
     changeValue(this->current_resistance);
     vr = new VoltageReader(this);
     vr->start();
-    connect(vr, SIGNAL(new_read(float)), this, SLOT(on_new_read(float)),Qt::UniqueConnection);
+    connect(vr, SIGNAL(new_read(int)), this, SLOT(on_new_read(int)),Qt::UniqueConnection);
 
 }
 
@@ -97,18 +99,24 @@ void Ohmetro::display_ohms(){
         ui->lcdNumber->display(newValue);
     }
 }
-void Ohmetro::on_new_read(float vin){
-    float error = 0.1;
-    cout << "Leyendo "<<vin<<"V"<<endl;
-    if(vin>5){
-        if(vin-5 < error)
-            vin = 5;
+void Ohmetro::on_new_read(int v){
+    cout << "Leyendo" << v<<"->";
+    if(v==0)
+        this->current_resistance = 99;
+    else if(v==1023)
+        this->current_resistance = 1001;
+    else{
+        float vo = (v*5.0)/1023.0;
+        //Despejando del voltaje del amp-op con el inverso de la ganancia
+        vo = vo/6.17222222;
+        cout << "Voltaje del puente "<<vo<<endl;
+        //Despejando R del voltaje de salida del puente
+        this->current_resistance = (int)((10000*(101*vo + 10))/(1000-101*vo));
+        //O Suponiendo que la salida del puente es lineal(mala idea)
+        //this->current_resistance = vo*200;
+        //Usando un simple divisor de voltaje
+        //this->current_resistance = (vo*REF_RESISTANCE)/(V_INPUT-vo);
+        std::cout << this->current_resistance<<std::endl;
     }
-    if(vin<0){
-        if(0-vin < error)
-            vin = 0;
-    }
-    vin = vin/6.1728;
-    this->current_resistance = (int)((10000*(101*vin + 10))/(1000-101*vin));
     this->changeValue(this->current_resistance);
 }

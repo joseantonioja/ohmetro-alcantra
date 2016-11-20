@@ -20,7 +20,7 @@ public:
 private slots:
     void on_rKOhms_clicked(bool);
     void on_rOhms_clicked(bool);
-    void on_new_read(float);
+    void on_new_read(int);
 
 private:
     Ui::Ohmetro *ui;

@@ -10,7 +10,7 @@ class VoltageReader: public QThread
     protected:
         void run() Q_DECL_OVERRIDE;
     signals:
-        void new_read(float);
+        void new_read(int);
 };
 
 #endif // VOLTAGEREADER_H
